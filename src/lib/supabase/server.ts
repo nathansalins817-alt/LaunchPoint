@@ -26,5 +26,12 @@ export async function createClient() {
         }
       },
     },
+    // Route-level `dynamic = "force-dynamic"` (root layout) doesn't reliably
+    // reach fetches made inside third-party SDKs - Vercel was still caching
+    // these specific outbound requests, so force no-store directly on every
+    // call this client makes.
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
+    },
   });
 }
