@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { OrgAvatar } from "@/components/org-avatar";
 import { OpportunityCard } from "@/components/opportunity-card";
 import { EmptyState } from "@/components/empty-state";
-import { getOrganizationBySlug, getOpportunitiesByOrganizationSlug, getOrganizations } from "@/lib/data";
+import { getOrganizationBySlug, getOpportunitiesByOrganizationSlug } from "@/lib/data";
 import { getSavedOpportunityIds } from "@/lib/data/saved";
 
 export async function generateMetadata({ params }: PageProps<"/organizations/[slug]">): Promise<Metadata> {
@@ -17,11 +17,10 @@ export async function generateMetadata({ params }: PageProps<"/organizations/[sl
   };
 }
 
-export async function generateStaticParams() {
-  const organizations = await getOrganizations();
-  return organizations.map((o) => ({ slug: o.slug }));
-}
-
+// Rendered on-demand rather than pre-built with generateStaticParams: the
+// catalog now changes at runtime (admin approvals from the discovery
+// pipeline, direct admin edits), and generateStaticParams can't use the
+// session-aware Supabase client anyway (it runs with no request/cookies).
 export default async function OrganizationPage({ params }: PageProps<"/organizations/[slug]">) {
   const { slug } = await params;
   const [org, opportunities, savedIds] = await Promise.all([

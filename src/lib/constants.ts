@@ -9,6 +9,7 @@ import {
   Cpu,
   LineChart,
   Palette,
+  Code2,
   type LucideIcon,
 } from "lucide-react";
 import type { Category } from "./types";
@@ -50,6 +51,12 @@ export const CATEGORY_META: Record<Category, CategoryMeta> = {
     label: "Competitions",
     description: "Contests to test and showcase your skills.",
     icon: Trophy,
+  },
+  Hackathon: {
+    category: "Hackathon",
+    label: "Hackathons",
+    description: "Build something in a weekend with a team, judged for prizes.",
+    icon: Code2,
   },
   Volunteering: {
     category: "Volunteering",
@@ -171,6 +178,7 @@ export const ONBOARDING_OPPORTUNITY_TYPES: Category[] = [
   "Summer Program",
   "Scholarship",
   "Competition",
+  "Hackathon",
   "Volunteering",
 ];
 

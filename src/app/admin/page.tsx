@@ -3,23 +3,29 @@ import type { Metadata } from "next";
 import { ListChecks, CheckCircle2, CalendarClock, Inbox, Users } from "lucide-react";
 import { StatCard } from "@/components/admin/stat-card";
 import { RemindersPanel } from "@/components/admin/reminders-panel";
+import { FindOpportunitiesPanel } from "@/components/admin/find-opportunities-panel";
 import { Button } from "@/components/ui/button";
-import { getAdminStats, listPendingSubmissions, getReminderStats } from "@/lib/data/admin";
+import { getAdminStats, listPendingSubmissions, getReminderStats, getDiscoveryStats } from "@/lib/data/admin";
 import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Admin Overview" };
 
 export default async function AdminOverviewPage() {
-  const [stats, pendingSubmissions, reminderStats] = await Promise.all([
+  const [stats, pendingSubmissions, reminderStats, discoveryStats] = await Promise.all([
     getAdminStats(),
     listPendingSubmissions(),
     getReminderStats(),
+    getDiscoveryStats(),
   ]);
 
   return (
     <div>
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">Admin Overview</h1>
       <p className="mt-1 text-sm text-muted-foreground">A snapshot of the LaunchPoint catalog.</p>
+
+      <div className="mt-6">
+        <FindOpportunitiesPanel pendingInbox={discoveryStats.pendingInbox} />
+      </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
         <StatCard label="Total opportunities" value={stats.totalOpportunities} icon={ListChecks} />

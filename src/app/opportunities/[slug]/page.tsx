@@ -11,7 +11,7 @@ import { OpportunityTimeline } from "@/components/opportunity/timeline";
 import { VerificationBadge } from "@/components/opportunity/verification-badge";
 import { ReportDialog } from "@/components/opportunity/report-dialog";
 import { MatchScore } from "@/components/opportunity/match-score";
-import { getOpportunityBySlug, getAllPublishedOpportunities } from "@/lib/data";
+import { getOpportunityBySlug } from "@/lib/data";
 import { getSavedOpportunityIds } from "@/lib/data/saved";
 import { getCurrentProfile } from "@/lib/auth";
 import { formatCost, formatDate, formatGrades, formatLocation } from "@/lib/format";
@@ -34,11 +34,10 @@ export async function generateMetadata({ params }: PageProps<"/opportunities/[sl
   };
 }
 
-export async function generateStaticParams() {
-  const opportunities = await getAllPublishedOpportunities();
-  return opportunities.map((o) => ({ slug: o.slug }));
-}
-
+// Rendered on-demand rather than pre-built with generateStaticParams: the
+// catalog now changes at runtime (admin approvals from the discovery
+// pipeline, direct admin edits), and generateStaticParams can't use the
+// session-aware Supabase client anyway (it runs with no request/cookies).
 export default async function OpportunityDetailPage({ params }: PageProps<"/opportunities/[slug]">) {
   const { slug } = await params;
   const [opportunity, savedIds, profile] = await Promise.all([

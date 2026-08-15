@@ -4,6 +4,7 @@ export const CATEGORIES = [
   "Summer Program",
   "Scholarship",
   "Competition",
+  "Hackathon",
   "Volunteering",
   "Entrepreneurship",
   "Fellowship",

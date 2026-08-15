@@ -235,12 +235,47 @@ export interface Database {
           review_status: string;
           discovered_at: string;
           last_checked_at: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          match_score: number | null;
+          search_id: string | null;
+          admin_note: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["discovered_opportunities"]["Row"]> & {
           source_id: string;
           raw_title: string;
         };
         Update: Partial<Database["public"]["Tables"]["discovered_opportunities"]["Row"]>;
+        Relationships: [];
+      };
+      discovery_searches: {
+        Row: {
+          id: string;
+          started_at: string;
+          completed_at: string | null;
+          triggered_by: string;
+          sources_scanned: number;
+          opportunities_found: number;
+        };
+        Insert: Partial<Database["public"]["Tables"]["discovery_searches"]["Row"]>;
+        Update: Partial<Database["public"]["Tables"]["discovery_searches"]["Row"]>;
+        Relationships: [];
+      };
+      discovery_preferences: {
+        Row: {
+          id: string;
+          interests: string[];
+          opportunity_types: string[];
+          min_grade: number | null;
+          max_grade: number | null;
+          min_age: number | null;
+          max_age: number | null;
+          format_preference: string | null;
+          geographic_notes: string | null;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["discovery_preferences"]["Row"]>;
+        Update: Partial<Database["public"]["Tables"]["discovery_preferences"]["Row"]>;
         Relationships: [];
       };
       opportunity_changes: {

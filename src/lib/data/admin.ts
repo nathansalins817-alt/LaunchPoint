@@ -137,7 +137,7 @@ export async function getDiscoveryStats() {
       .from("discovered_opportunities")
       .select("id", { count: "exact", head: true })
       .gte("discovered_at", startOfMonth.toISOString()),
-    supabase.from("discovered_opportunities").select("id", { count: "exact", head: true }).eq("review_status", "needs_review"),
+    supabase.from("discovered_opportunities").select("id", { count: "exact", head: true }).in("review_status", ["new", "needs_review"]),
     supabase.from("discovered_opportunities").select("id", { count: "exact", head: true }).eq("review_status", "possible_duplicate"),
     supabase.from("opportunity_changes").select("id", { count: "exact", head: true }).eq("review_status", "pending"),
     supabase.from("discovery_runs").select("id", { count: "exact", head: true }).eq("status", "failed"),
@@ -150,6 +150,7 @@ export async function getDiscoveryStats() {
     possibleDuplicates: duplicates.count ?? 0,
     pendingChanges: changes.count ?? 0,
     brokenLinks: brokenLinks.count ?? 0,
+    pendingInbox: (needsReview.count ?? 0) + (duplicates.count ?? 0),
   };
 }
 
@@ -166,7 +167,44 @@ export async function listDiscoveredByStatus(status: string) {
     .select("*")
     .eq("review_status", status)
     .order("discovered_at", { ascending: false });
-  return data ?? [];
+  if (!data || data.length === 0) return [];
+
+  const sourceIds = [...new Set(data.map((r) => r.source_id))];
+  const { data: sources } = await supabase.from("discovery_sources").select("id, organization_name, source_url").in("id", sourceIds);
+  const byId = new Map((sources ?? []).map((s) => [s.id, s]));
+
+  return data.map((r) => ({ ...r, source: byId.get(r.source_id) ?? null }));
+}
+
+export async function getDiscoveryPreferences() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("discovery_preferences").select("*").limit(1).maybeSingle();
+  return data;
+}
+
+export async function listDiscoverySearches(limit = 15) {
+  const supabase = await createClient();
+  const { data: searches } = await supabase
+    .from("discovery_searches")
+    .select("*")
+    .order("started_at", { ascending: false })
+    .limit(limit);
+  if (!searches || searches.length === 0) return [];
+
+  const searchIds = searches.map((s) => s.id);
+  const { data: items } = await supabase.from("discovered_opportunities").select("search_id, review_status").in("search_id", searchIds);
+
+  const countsBySearch = new Map<string, { approved: number; denied: number; needsReview: number }>();
+  for (const item of items ?? []) {
+    if (!item.search_id) continue;
+    const counts = countsBySearch.get(item.search_id) ?? { approved: 0, denied: 0, needsReview: 0 };
+    if (item.review_status === "approved") counts.approved += 1;
+    else if (item.review_status === "rejected") counts.denied += 1;
+    else if (item.review_status === "needs_review" || item.review_status === "possible_duplicate") counts.needsReview += 1;
+    countsBySearch.set(item.search_id, counts);
+  }
+
+  return searches.map((s) => ({ ...s, counts: countsBySearch.get(s.id) ?? { approved: 0, denied: 0, needsReview: 0 } }));
 }
 
 export async function listPendingChanges() {
