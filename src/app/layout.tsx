@@ -19,6 +19,14 @@ const geistMono = Geist_Mono({
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+// Every route in this app reads live, frequently-changing data (admin
+// approvals, discovery results, expirations) - force dynamic rendering
+// everywhere so Vercel's CDN never serves a stale cached page. Without this,
+// Next.js's default caching heuristics can still let Vercel cache a
+// dynamically-rendered response at the edge (observed: X-Vercel-Cache: HIT
+// serving opportunity counts from before an admin approval).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
